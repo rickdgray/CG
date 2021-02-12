@@ -24,6 +24,8 @@ private:
 
 	GzInt Width;
 	GzInt Height;
+
+	GzColor ClearColor;
 };
 //----------------------------------------------------------------------------
 

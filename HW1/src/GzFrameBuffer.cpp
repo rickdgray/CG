@@ -19,6 +19,7 @@ void GzFrameBuffer::clear(GzFunctional buffer)
 
 void GzFrameBuffer::setClearColor(const GzColor& color)
 {
+	ClearColor = color;
 }
 
 void GzFrameBuffer::setClearDepth(GzReal depth)
