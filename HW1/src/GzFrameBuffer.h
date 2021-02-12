@@ -22,6 +22,8 @@ public:
 private:
 	//Put any variables and private functions for your implementation here
 
+	GzInt Width;
+	GzInt Height;
 };
 //----------------------------------------------------------------------------
 
