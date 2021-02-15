@@ -12,22 +12,28 @@ void GzFrameBuffer::initFrameSize(GzInt width, GzInt height)
 
 GzImage GzFrameBuffer::toImage()
 {
-	return GzImage();
+	GzImage image(Width, Height);
+
+	for (GzInt y = 0; y < Height; y++)
+		for (GzInt x = 0; x < Width; x++)
+			image.set(x, y, ColorBuffer[x + (y * Width)]);
+
+	return image;
 }
 
 void GzFrameBuffer::clear(GzFunctional buffer)
 {
 	if (buffer & GZ_COLOR_BUFFER)
 	{
-		for (int y = 0; y < Height; y++)
-			for (int x = 0; x < Width; x++)
+		for (GzInt y = 0; y < Height; y++)
+			for (GzInt x = 0; x < Width; x++)
 				ColorBuffer[x + (y * Width)] = ClearColor;
 	}
 
 	if (buffer & GZ_DEPTH_BUFFER)
 	{
-		for (int y = 0; y < Height; y++)
-			for (int x = 0; x < Width; x++)
+		for (GzInt y = 0; y < Height; y++)
+			for (GzInt x = 0; x < Width; x++)
 				DepthBuffer[x + (y * Width)] = ClearDepth;
 	}
 }
