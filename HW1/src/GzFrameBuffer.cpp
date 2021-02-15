@@ -17,7 +17,7 @@ void GzFrameBuffer::clear(GzFunctional buffer)
 {
 	if (buffer == GZ_COLOR_BUFFER)
 	{
-		for (int h = 0; h < Height h++)
+		for (int h = 0; h < Height; h++)
 			for (int w = 0; w < Width; w++)
 				ColorBuffer[w + (h * Width)] = ClearColor;
 	}
