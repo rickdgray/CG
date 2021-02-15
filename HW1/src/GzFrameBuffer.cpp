@@ -6,6 +6,7 @@ void GzFrameBuffer::initFrameSize(GzInt width, GzInt height)
 {
 	Width = width;
 	Height = height;
+	ColorBuffer = new GzColor[Width * Height];
 }
 
 GzImage GzFrameBuffer::toImage()
@@ -17,9 +18,9 @@ void GzFrameBuffer::clear(GzFunctional buffer)
 {
 	if (buffer == GZ_COLOR_BUFFER)
 	{
-		for (int h = 0; h < Height; h++)
-			for (int w = 0; w < Width; w++)
-				ColorBuffer[w + (h * Width)] = ClearColor;
+		for (int y = 0; y < Height; y++)
+			for (int x = 0; x < Width; x++)
+				ColorBuffer[x + (y * Width)] = ClearColor;
 	}
 }
 

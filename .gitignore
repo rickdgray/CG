@@ -351,3 +351,4 @@ MigrationBackup/
 
 *.o
 hw
+*.bmp
