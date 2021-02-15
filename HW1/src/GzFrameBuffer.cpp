@@ -1,3 +1,4 @@
+#include <math.h>
 #include "GzFrameBuffer.h"
 
 //Put your implementation here------------------------------------------------
@@ -50,5 +51,5 @@ void GzFrameBuffer::setClearDepth(GzReal depth)
 
 void GzFrameBuffer::drawPoint(const GzVertex& v, const GzColor& c, GzFunctional status)
 {
+	ColorBuffer[(GzInt)round(v[0]) + ((GzInt)round(v[1]) * Width)] = c;
 }
-
