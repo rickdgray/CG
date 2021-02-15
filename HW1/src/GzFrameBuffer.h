@@ -26,6 +26,10 @@ private:
 	GzInt Height;
 
 	GzColor ClearColor;
+	GzColor* ColorBuffer;
+
+	GzReal ClearDepth;
+	GzReal* DepthBuffer;
 };
 //----------------------------------------------------------------------------
 
