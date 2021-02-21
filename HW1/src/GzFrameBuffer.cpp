@@ -51,5 +51,14 @@ void GzFrameBuffer::setClearDepth(GzReal depth)
 
 void GzFrameBuffer::drawPoint(const GzVertex& v, const GzColor& c, GzFunctional status)
 {
-	ColorBuffer[(GzInt)round(v[0]) + ((GzInt)round(v[1]) * Width)] = c;
+	GzInt x = round(v[0]);
+	GzInt y = round(v[1]);
+
+	if (x < 0 || x >= Width)
+		return;
+
+	if (y < 0 || y >= Height)
+		return;
+
+	ColorBuffer[x + y * Width] = c;
 }
