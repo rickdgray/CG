@@ -52,13 +52,24 @@ void GzFrameBuffer::setClearDepth(GzReal depth)
 void GzFrameBuffer::drawPoint(const GzVertex& v, const GzColor& c, GzFunctional status)
 {
 	GzInt x = round(v[0]);
-	GzInt y = round(v[1]);
-
 	if (x < 0 || x >= Width)
 		return;
 
+	GzInt y = round(v[1]);
 	if (y < 0 || y >= Height)
 		return;
 
+	if (status & GZ_DEPTH_TEST)
+	{
+		GzReal z = v[2];
+		if (z > DepthBuffer[x + (y * Width)])
+		{
+			DepthBuffer[x + (y * Width)] = z;
+			ColorBuffer[x + (y * Width)] = c;
+		}
+
+		return;
+	}
+	
 	ColorBuffer[x + y * Width] = c;
 }
