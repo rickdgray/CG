@@ -62,7 +62,7 @@ void GzFrameBuffer::drawPoint(const GzVertex& v, const GzColor& c, GzFunctional 
 	if (status & GZ_DEPTH_TEST)
 	{
 		GzReal z = v[2];
-		if (z > DepthBuffer[x + (y * Width)])
+		if (z >= DepthBuffer[x + (y * Width)])
 		{
 			DepthBuffer[x + (y * Width)] = z;
 			ColorBuffer[x + (y * Width)] = c;
