@@ -28,7 +28,7 @@ private:
 	GzColor ClearColor;
 	GzColor* ColorBuffer;
 
-	GzReal ClearDepth;
+	GzReal ViewDistance;
 	GzReal* DepthBuffer;
 };
 //----------------------------------------------------------------------------

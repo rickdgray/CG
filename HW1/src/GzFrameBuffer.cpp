@@ -35,7 +35,7 @@ void GzFrameBuffer::clear(GzFunctional buffer)
 	{
 		for (GzInt y = 0; y < Height; y++)
 			for (GzInt x = 0; x < Width; x++)
-				DepthBuffer[x + (y * Width)] = ClearDepth;
+				DepthBuffer[x + (y * Width)] = ViewDistance;
 	}
 }
 
@@ -46,7 +46,7 @@ void GzFrameBuffer::setClearColor(const GzColor& color)
 
 void GzFrameBuffer::setClearDepth(GzReal depth)
 {
-	ClearDepth = depth;
+	ViewDistance = depth;
 }
 
 void GzFrameBuffer::drawPoint(const GzVertex& v, const GzColor& c, GzFunctional status)
