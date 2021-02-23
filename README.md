@@ -1,4 +1,4 @@
-# Computer Graphics
+# COSC 6372 Computer Graphics
 Rick Gray
 
 1375849
