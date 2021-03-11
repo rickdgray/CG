@@ -22,6 +22,8 @@
 
 #pragma pack(push, 1)
 
+#include <cstring>
+
 typedef struct {
 	unsigned short int Signature;
 	unsigned int Size;

@@ -20,8 +20,19 @@ public:
 
 	void drawPoint(const GzVertex& v, const GzColor& c, GzFunctional status);
 
+	void drawTriangle(GzVertex *vertices, GzColor *colors, GzFunctional status);
+
 private:
 	//Put any variables and private functions for your implementation here
+
+	GzInt Width;
+	GzInt Height;
+
+	GzColor ClearColor;
+	GzColor* ColorBuffer;
+
+	GzReal ViewDistance;
+	GzReal* DepthBuffer;
 };
 //----------------------------------------------------------------------------
 

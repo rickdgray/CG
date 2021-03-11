@@ -350,5 +350,5 @@ MigrationBackup/
 .ionide/
 
 *.o
-hw
+hw*
 *.bmp
