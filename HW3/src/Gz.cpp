@@ -123,7 +123,6 @@ void Gz::viewport(GzInt x, GzInt y) {
 
 //Transformations-------------------------------------------------------------
 void Gz::lookAt(GzReal eyeX, GzReal eyeY, GzReal eyeZ, GzReal centerX, GzReal centerY, GzReal centerZ, GzReal upX, GzReal upY, GzReal upZ) {
-	prjMatrix = Identity(4);
     transMatrix = Identity(4);
 
     GzReal f[] = {centerX - eyeX, centerY - eyeY, centerZ - eyeZ};
@@ -141,10 +140,11 @@ void Gz::lookAt(GzReal eyeX, GzReal eyeY, GzReal eyeZ, GzReal centerX, GzReal ce
                         u[0], u[1], u[2], 0,
                        -f[0],-f[1],-f[2],0,
                         0, 0, 0, 1};
+
     GzMatrix M;
     arrayToMatrix(arrayM,M,4,4);
-
     multMatrix(M);;
+
     translate(-eyeX,-eyeY, -eyeZ);
 }
 
@@ -156,7 +156,6 @@ void Gz::translate(GzReal x, GzReal y, GzReal z) {
 
     GzMatrix M;
     arrayToMatrix(arrayM,M,4,4);
-
     multMatrix(M);
 }
 
@@ -176,7 +175,6 @@ void Gz::rotate(GzReal angle, GzReal x, GzReal y, GzReal z) {
 
     GzMatrix M;
     arrayToMatrix(arrayM,M,4,4);
-
     multMatrix(M);
 }
 
@@ -188,7 +186,6 @@ void Gz::scale(GzReal x, GzReal y, GzReal z) {
 
     GzMatrix M;
     arrayToMatrix(arrayM,M,4,4);
-
     multMatrix(M);
 }
 
@@ -201,6 +198,7 @@ void Gz::multMatrix(GzMatrix mat) {
 
 //Projections-----------------------------------------------------------------
 void Gz::perspective(GzReal fovy, GzReal aspect, GzReal zNear, GzReal zFar) {
+    prjMatrix = Zeros(4);
 	fovy = fovy*Pi()/180;
     GzReal f = cotan(fovy/2);
     GzReal arrayM[] = {f/aspect, 0, 0, 0,
@@ -210,7 +208,6 @@ void Gz::perspective(GzReal fovy, GzReal aspect, GzReal zNear, GzReal zFar) {
 
     GzMatrix M;
     arrayToMatrix(arrayM,M,4,4);
-	
     prjMatrix = M;
 }
 
@@ -221,12 +218,11 @@ void Gz::orthographic(GzReal left, GzReal right, GzReal bottom, GzReal top, GzRe
 
     GzReal arrayM[] =  {2/(right - left), 0, 0, tx,
                         0, 2/(top - bottom), 0, ty,
-                        0, 0, 2/(farVal-nearVal), tz,
+                        0, 0, 2/(farVal - nearVal), tz,
                         0, 0, 0, 1};
 
     GzMatrix M;
     arrayToMatrix(arrayM,M,4,4);
-
     prjMatrix = M;
 }
 //End of Projections----------------------------------------------------------
