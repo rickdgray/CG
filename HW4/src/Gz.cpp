@@ -233,10 +233,41 @@ void Gz::end() {
 		frameBuffer.loadLightTrans(transMatrix);
 		switch (currentPrimitive) {
 			case GZ_POINTS: {
-			//Put your points shading code here. You might copy and modify the source in assignment 2.
+				while ((vertexQueue.size() >= 1) && (normalQueue.size() >= 1) && (colorQueue.size() >= 1 ))
+				{
+					GzVertex v = transAll(vertexQueue.front());
+					vertexQueue.pop();
+
+					GzVector n = transNorm(normalQueue.front());
+					normalQueue.pop();
+
+					GzColor c = colorQueue.front();
+					colorQueue.pop();
+
+					frameBuffer.drawPoint(v, n, c, status);
+				}
 			} break;
 			case GZ_TRIANGLES: {
-			//Put your triangles shading code here. You might copy and modify the source in assignment 2.
+				while ((vertexQueue.size() >= 3) && (colorQueue.size() >= 3))
+				{
+					vector<GzVertex> v(3);
+					vector<GzVector> n(3);
+					vector<GzColor> c(3);
+					
+					for (int i = 0; i < 3; i++)
+					{
+						v[i]=transAll(vertexQueue.front()); 
+						vertexQueue.pop();
+
+						n[i]= transNorm(normalQueue.front());
+						normalQueue.pop();
+
+						c[i]=colorQueue.front(); 
+						colorQueue.pop();
+					}
+					
+					frameBuffer.drawTriangle(v, n, c, status);
+				}
 			} break;
 		}
 	} else {
@@ -261,6 +292,21 @@ void Gz::end() {
 			}
 		}
 	}
+}
+
+GzVector Gz::transNorm(const GzVector& n)
+{
+	GzMatrix mat = transMatrix.inverse3x3().transpose();
+
+	GzVector normedMatrix;
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			normedMatrix[i] += mat[i][j] * n[j];
+		}
+	}
+	return normedMatrix;
 }
 
 //============================================================================

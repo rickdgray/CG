@@ -143,4 +143,87 @@ void GzFrameBuffer::material(GzReal _kA, GzReal _kD, GzReal _kS, GzReal _s) {
 }
 
 void GzFrameBuffer::addLight(const GzVector& v, const GzColor& c) {
+	lights.push_back(make_pair(v, c));
+}
+
+void GzFrameBuffer::loadLightTrans(GzMatrix transMatrix)
+{
+	
+}
+
+void drawPoint(const GzVertex& v, const GzVector& n, const GzColor& c, GzFunctional status)
+{
+	GzInt x = round(v[X]);
+	if (x < 0 || x >= image.sizeW())
+		return;
+
+	GzInt y = round(v[Y]);
+	if (y < 0 || y >= image.sizeH())
+		return;
+
+	if (status & GZ_DEPTH_TEST)
+	{
+		GzReal z = v[Z];
+		if (z >= DepthBuffer[x][y])
+		{
+			image.set(x, y, shade(n, c));
+			depthBuffer[x][y] = v[Z];
+		}
+
+		return;
+	}
+	
+	image.set(x, y, shade(n, c));
+}
+
+void drawTriangle(vector<GzVertex>& v, vector<GzVector>& n, vector<GzColor>& c, GzFunctional status)
+{
+	if (curShadeModel == GZ_GOURAUD)
+	{
+
+	}
+}
+
+GzColor shade(const GzVector& n, const GzColor& c)
+{
+	GzColor shadedColor = new GzColor();
+	for (int i = 0; i < 4; i++)
+	{
+		//apply ambient coefficeint on copy
+		shadedColor[i] = c[i] * kA;
+	}
+
+	for (int i = 0; i < lights.size(); i++)
+	{
+		GzVector lightDirection = lights[i].first;
+		GzColor lightColor = lights[i].second;
+
+		//normalized light direction
+		GzVector L = GzVector() - lightDirection;
+		L.normalize();
+
+		//lambertian reflectance
+		for (int j = 0; j < 4; j++)
+		{
+			if (lightColor[j] * dotProduct(n, L) * kD > 1 || lightColor[j] * dotProduct(n, L) * kD < 0)
+			{
+				cout << "lambertian out of bounds"
+			}
+			shadedColor[j] += lightColor[j] * dotProduct(n, L) * kD;
+		}
+
+		//viewer vector
+		GzVector V = new GzVector(0, 0, 1);
+
+		//halfway vector
+		GzVector H = L + 
+
+		//blinn-phong specular highlights
+		for (int j = 0; j < 4; j++)
+		{
+
+		}
+	}
+
+	return shadedColor;
 }

@@ -97,6 +97,7 @@ public:
 	void addNormal(const GzVector& v);	//Specify a normal vector
 private:
 	queue<GzVector> normalQueue;			//Store normal vectors in queue for rendering
+	GzVector transNorm(const GzVector& n);
 //============================================================================
 //End of Declarations in Assignment #4
 //============================================================================

@@ -7,6 +7,9 @@
 #include "GzMatrix.h"
 #include <vector>
 #include <cmath>
+#include <utility>
+#include <algorithm>
+
 using namespace std;
 
 //Frame buffer with Z-buffer -------------------------------------------------
@@ -55,10 +58,17 @@ public:
 																			//	_kD: The diffuse coefficients
 																			//	_kS: The specular coefficients
 																			//	_s: The spec power
+	void loadLightTrans(GzMatrix transMatrix);
 
+	void drawPoint(const GzVertex& v, const GzVector& n, const GzColor& c, GzFunctional status);
+	void drawTriangle(vector<GzVertex>& v, vector<GzVector>& n, vector<GzColor>& c, GzFunctional status);
 private:
 	GzInt curShadeModel;
 	GzReal kA, kD, kS, s;
+
+	vector<pair<GzVector, GzColor>> lights;
+
+	GzColor shade(const GzVector& n, const GzColor& c);
 //============================================================================
 //End of Declarations in Assignment #4
 //============================================================================
