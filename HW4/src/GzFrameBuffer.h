@@ -67,6 +67,7 @@ private:
 	GzReal kA, kD, kS, s;
 
 	vector<pair<GzVector, GzColor>> lights;
+	vector<pair<GzVector, GzColor>> lightTrans;
 
 	GzColor shade(const GzVector& n, const GzColor& c);
 //============================================================================

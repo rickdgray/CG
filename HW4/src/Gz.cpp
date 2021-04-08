@@ -298,15 +298,15 @@ GzVector Gz::transNorm(const GzVector& n)
 {
 	GzMatrix mat = transMatrix.inverse3x3().transpose();
 
-	GzVector normedMatrix;
+	GzVector normedVector;
 	for (int i = 0; i < 3; i++)
 	{
 		for (int j = 0; j < 3; j++)
 		{
-			normedMatrix[i] += mat[i][j] * n[j];
+			normedVector[i] += mat[i][j] * n[j];
 		}
 	}
-	return normedMatrix;
+	return normedVector;
 }
 
 //============================================================================

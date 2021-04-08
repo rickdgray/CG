@@ -144,11 +144,26 @@ void GzFrameBuffer::material(GzReal _kA, GzReal _kD, GzReal _kS, GzReal _s) {
 
 void GzFrameBuffer::addLight(const GzVector& v, const GzColor& c) {
 	lights.push_back(make_pair(v, c));
+	lightTrans.push_back(make_pair(v, c));
 }
 
 void GzFrameBuffer::loadLightTrans(GzMatrix transMatrix)
 {
-	
+	GzMatrix mat = transMatrix.inverse3x3().transpose();
+
+	for (int i = 0; i < lights.size(); i++)
+	{
+		GzVector transedVector;
+		for (int j = 0; j < 3; j++)
+		{
+			for (int k = 0; k < 3; k++)
+			{
+				transedVector[j] += mat[j][k] * lights[i].first[k];
+			}
+		}
+
+		lightTrans[i].first = transedVector
+	}
 }
 
 void drawPoint(const GzVertex& v, const GzVector& n, const GzColor& c, GzFunctional status)
@@ -212,17 +227,17 @@ GzColor shade(const GzVector& n, const GzColor& c)
 			shadedColor[j] += lightColor[j] * dotProduct(n, L) * kD;
 		}
 
-		//viewer vector
-		GzVector V = new GzVector(0, 0, 1);
+		// //viewer vector
+		// GzVector V = new GzVector(0, 0, 1);
 
-		//halfway vector
-		GzVector H = L + 
+		// //halfway vector
+		// GzVector H = L + 
 
-		//blinn-phong specular highlights
-		for (int j = 0; j < 4; j++)
-		{
+		// //blinn-phong specular highlights
+		// for (int j = 0; j < 4; j++)
+		// {
 
-		}
+		// }
 	}
 
 	return shadedColor;
