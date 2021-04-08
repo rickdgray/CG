@@ -257,17 +257,15 @@ GzColor GzFrameBuffer::shade(const GzVector& n, const GzVector& e, const GzColor
 			}
 		}
 
-		// //viewer vector
-		// GzVector V = ???
+		//e is eye or View Vector
+		//H is Halfway Vector
+		GzVector H = (L + e) / abs(L + e);
 
-		// //halfway vector
-		// GzVector H = L + V
+		//blinn-phong specular highlights
+		for (int j = 0; j < 4; j++)
+		{
 
-		// //blinn-phong specular highlights
-		// for (int j = 0; j < 4; j++)
-		// {
-
-		// }
+		}
 	}
 
 	return shadedColor;
