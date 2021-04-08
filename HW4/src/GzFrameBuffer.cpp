@@ -130,6 +130,16 @@ void GzFrameBuffer::colorInterpolate(GzReal key1, GzColor& val1, GzReal key2, Gz
 	for (GzInt i=0; i<4; i++) val[i]=val1[i]+(val2[i]-val1[i])*k;
 }
 
+void GzFrameBuffer::normalInterpolate(GzReal key1, GzVector& val1, GzReal key2, GzVector& val2, GzReal key, GzVector& val)
+{
+    GzReal k=(key-key1)/(key2-key1);
+
+    for (GzInt i = 0; i < 3; i++)
+        val[i]=val1[i]+(val2[i]-val1[i])*k;
+
+    val.normalize();
+}
+
 void GzFrameBuffer::shadeModel(const GzInt model) {
 	curShadeModel=model;
 }
@@ -201,12 +211,17 @@ void GzFrameBuffer::drawTriangle(vector<GzVertex>& v, vector<GzVector>& n, vecto
 {
 	if (curShadeModel == GZ_GOURAUD)
 	{
-		vector<GzColor> Cs(3);
+		vector<GzColor> shadedColors(3);
         for (int i = 0; i < 3; i++)
         {
-            Cs[i] = shade(n[i],c[i]);
+            shadedColors[i] = shade(n[i], c[i]);
         }
-        drawTriangle(v,Cs,status);
+
+        drawTriangle(v, shadedColors, status);
+	}
+	else if (curShadeModel == GZ_PHONG)
+	{
+
 	}
 }
 
@@ -243,10 +258,10 @@ GzColor GzFrameBuffer::shade(const GzVector& n, const GzColor& c)
 		}
 
 		// //viewer vector
-		// GzVector V = new GzVector(0, 0, 1);
+		// GzVector V = ???
 
 		// //halfway vector
-		// GzVector H = L + 
+		// GzVector H = L + V
 
 		// //blinn-phong specular highlights
 		// for (int j = 0; j < 4; j++)
@@ -256,4 +271,38 @@ GzColor GzFrameBuffer::shade(const GzVector& n, const GzColor& c)
 	}
 
 	return shadedColor;
+}
+
+void GzFrameBuffer::drawRasLine(GzInt y, GzReal xMin, GzReal zMin, GzColor& cMin, GzVector& nMin, GzReal xMax, GzReal zMax, GzColor& cMax, GzVector& nMax, GzFunctional status)
+{
+	if ((y<0)||(y>=image.sizeH())) return;
+	if ((GzInt)floor(xMin)==(GzInt)floor(xMax)) {
+		if (zMin>zMax) drawPoint(GzVertex(floor(xMin), y, zMin), nMin, cMin, status);
+			else drawPoint(GzVertex(floor(xMin), y, zMax), nMax, cMax, status);
+	} else {
+		GzReal z;
+		GzColor c;
+		GzVector n;
+		y=image.sizeH()-y-1;
+		int w=image.sizeW();
+		if (status&GZ_DEPTH_TEST) {
+			for (int x=max(0, (GzInt)floor(xMin)); x<=min(w-1, (GzInt)floor(xMax)); x++) {
+				realInterpolate(xMin, zMin, xMax, zMax, x, z);
+				if (z>=depthBuffer[x][y]) {
+					colorInterpolate(xMin, cMin, xMax, cMax, x, c);
+					normalInterpolate(xMin, nMin, xMax, nMax, x, n);
+					image.set(x, y, shade(n, c));
+					depthBuffer[x][y]=z;
+				}
+			}
+		} else {
+			for (int x=max(0, (GzInt)floor(xMin)); x<=min(w-1, (GzInt)floor(xMax)); x++) {
+				realInterpolate(xMin, zMin, xMax, zMax, x, z);
+				colorInterpolate(xMin, cMin, xMax, cMax, x, c);
+				normalInterpolate(xMin, nMin, xMax, nMax, x, n);
+				image.set(x, y, shade(n, c));
+				depthBuffer[x][y]=z;
+			}
+		}
+	}
 }
