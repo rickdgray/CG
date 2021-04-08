@@ -1,7 +1,6 @@
 #include "GzFrameBuffer.h"
 
 //Put your implementation here------------------------------------------------
-#include <climits>
 void GzFrameBuffer::initFrameSize(GzInt width, GzInt height) {
 	image.resize(width, height);
 	depthBuffer=vector<vector<GzReal> >(width, vector<GzReal>(height, clearDepth));
@@ -162,7 +161,7 @@ void GzFrameBuffer::loadLightTrans(GzMatrix transMatrix)
 			}
 		}
 
-		lightTrans[i].first = transedVector
+		lightTrans[i].first = transedVector;
 	}
 }
 
@@ -179,7 +178,7 @@ void drawPoint(const GzVertex& v, const GzVector& n, const GzColor& c, GzFunctio
 	if (status & GZ_DEPTH_TEST)
 	{
 		GzReal z = v[Z];
-		if (z >= DepthBuffer[x][y])
+		if (z >= depthBuffer[x][y])
 		{
 			image.set(x, y, shade(n, c));
 			depthBuffer[x][y] = v[Z];
@@ -195,7 +194,12 @@ void drawTriangle(vector<GzVertex>& v, vector<GzVector>& n, vector<GzColor>& c, 
 {
 	if (curShadeModel == GZ_GOURAUD)
 	{
-
+		vector<GzColor> Cs(3);
+        for (int i = 0; i < 3; i++)
+        {
+            Cs[i] = shaderFunction(n[i],c[i]);
+        }
+        drawTriangle(v,Cs,status);
 	}
 }
 
