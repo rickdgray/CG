@@ -227,11 +227,11 @@ void GzFrameBuffer::drawTriangle(vector<GzVertex>& v, vector<GzVector>& n, const
 
 GzColor GzFrameBuffer::shade(const GzVector& n, const GzVector& e, const GzColor& c)
 {
+	//ambient light
 	GzColor shadedColor;
 	for (int i = 0; i < 4; i++)
 	{
-		//apply ambient coefficeint on copy
-		shadedColor[i] = c[i] * kA;
+		shadedColor[i] = max(kA * c[i], 0.0);
 	}
 
 	for (int i = 0; i < lights.size(); i++)
@@ -246,25 +246,30 @@ GzColor GzFrameBuffer::shade(const GzVector& n, const GzVector& e, const GzColor
 		//lambertian reflectance
 		for (int j = 0; j < 4; j++)
 		{
-			GzReal result = lightColor[j] * dotProduct(n, L) * kD;
-			if (result > 1)
-			{
-				shadedColor[j] += 1;
-			}
-			else if (result > 0)
-			{
-				shadedColor[j] += result;
-			}
+			shadedColor[j] += max(kD * lightColor[j] * dotProduct(n, L), 0.0);
 		}
 
-		//e is eye or View Vector
-		//H is Halfway Vector
-		GzVector H = (L + e) / abs(L + e);
+		//view vector
+		GzVector V = e;
+		V.normalize();
+
+		//halfway vector
+		GzVector H = L + V;
+		H.normalize();
+
+		//normal vector
+		GzVector N = n;
 
 		//blinn-phong specular highlights
 		for (int j = 0; j < 4; j++)
 		{
+			shadedColor[j] += max(kS * lightColor[j] * pow(max(dotProduct(n, H), 0.0), s), 0.0);
+		}
 
+		//check shaded color bounds
+		for (int j = 0; j < 4; j++)
+		{
+			shadedColor[j] = min(shadedColor[j], 1.0);
 		}
 	}
 
