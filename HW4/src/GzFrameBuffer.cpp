@@ -231,11 +231,15 @@ GzColor GzFrameBuffer::shade(const GzVector& n, const GzColor& c)
 		//lambertian reflectance
 		for (int j = 0; j < 4; j++)
 		{
-			if (lightColor[j] * dotProduct(n, L) * kD > 1 || lightColor[j] * dotProduct(n, L) * kD < 0)
+			GzReal result = lightColor[j] * dotProduct(n, L) * kD;
+			if (result > 1)
 			{
-				cout << "lambertian out of bounds";
+				shadedColor[j] += 1;
 			}
-			shadedColor[j] += lightColor[j] * dotProduct(n, L) * kD;
+			else if (result > 0)
+			{
+				shadedColor[j] += result;
+			}
 		}
 
 		// //viewer vector
