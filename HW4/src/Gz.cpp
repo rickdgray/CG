@@ -296,7 +296,14 @@ void Gz::end() {
 
 GzVector Gz::transNorm(const GzVector& n)
 {
-	GzMatrix mat = transMatrix.inverse3x3().transpose();
+	GzMatrix mat;
+	mat.resize(3, 3);
+
+	for (int i = 0; i < 3; i++)
+		for (int j = 0; j < 3; j++ )
+			mat[i][j] = transMatrix[i][j];
+
+	mat = mat.inverse3x3().transpose();
 
 	GzVector normedVector;
 	for (int i = 0; i < 3; i++)
