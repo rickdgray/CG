@@ -182,7 +182,7 @@ void GzFrameBuffer::loadLightTrans(GzMatrix transMatrix)
 	}
 }
 
-void GzFrameBuffer::drawPoint(const GzVertex& v, const GzVector& n, const GzColor& c, GzFunctional status)
+void GzFrameBuffer::drawPoint(const GzVertex& v, const GzVector& n, const GzVector& e, const GzColor& c, GzFunctional status)
 {
 	GzInt x = round(v[X]);
 	if (x < 0 || x >= image.sizeW())
@@ -207,7 +207,7 @@ void GzFrameBuffer::drawPoint(const GzVertex& v, const GzVector& n, const GzColo
 	image.set(x, y, shade(n, c));
 }
 
-void GzFrameBuffer::drawTriangle(vector<GzVertex>& v, vector<GzVector>& n, vector<GzColor>& c, GzFunctional status)
+void GzFrameBuffer::drawTriangle(vector<GzVertex>& v, vector<GzVector>& n, const GzVector& e, vector<GzColor>& c, GzFunctional status)
 {
 	if (curShadeModel == GZ_GOURAUD)
 	{
@@ -225,7 +225,7 @@ void GzFrameBuffer::drawTriangle(vector<GzVertex>& v, vector<GzVector>& n, vecto
 	}
 }
 
-GzColor GzFrameBuffer::shade(const GzVector& n, const GzColor& c)
+GzColor GzFrameBuffer::shade(const GzVector& n, const GzVector& e, const GzColor& c)
 {
 	GzColor shadedColor;
 	for (int i = 0; i < 4; i++)

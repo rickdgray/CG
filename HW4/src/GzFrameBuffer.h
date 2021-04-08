@@ -62,8 +62,8 @@ public:
 																			//	_s: The spec power
 	void loadLightTrans(GzMatrix transMatrix);
 
-	void drawPoint(const GzVertex& v, const GzVector& n, const GzColor& c, GzFunctional status);
-	void drawTriangle(vector<GzVertex>& v, vector<GzVector>& n, vector<GzColor>& c, GzFunctional status);
+	void drawPoint(const GzVertex& v, const GzVector& n, const GzVector& e, const GzColor& c, GzFunctional status);
+	void drawTriangle(vector<GzVertex>& v, vector<GzVector>& n, const GzVector& e, vector<GzColor>& c, GzFunctional status);
 private:
 	GzInt curShadeModel;
 	GzReal kA, kD, kS, s;
@@ -71,7 +71,7 @@ private:
 	vector<pair<GzVector, GzColor>> lights;
 	vector<pair<GzVector, GzColor>> lightTrans;
 
-	GzColor shade(const GzVector& n, const GzColor& c);
+	GzColor shade(const GzVector& n, const GzVector& e, const GzColor& c);
 	void normalInterpolate(GzReal key1, GzVector& val1, GzReal key2, GzVector& val2, GzReal key, GzVector& val);
 	void drawRasLine(GzInt y, GzReal xMin, GzReal zMin, GzColor& cMin, GzVector& nMin, GzReal xMax, GzReal zMax, GzColor& cMax, GzVector& nMax, GzFunctional status);
 //============================================================================

@@ -98,6 +98,7 @@ public:
 private:
 	queue<GzVector> normalQueue;			//Store normal vectors in queue for rendering
 	GzVector transNorm(const GzVector& n);
+	GzVector eyePos;
 //============================================================================
 //End of Declarations in Assignment #4
 //============================================================================

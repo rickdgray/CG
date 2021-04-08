@@ -109,6 +109,8 @@ void Gz::lookAt(GzReal eyeX, GzReal eyeY, GzReal eyeZ, GzReal centerX, GzReal ce
 
 
 	translate(-eyeX, -eyeY, -eyeZ);
+
+	eyePos = GzVector(eyeX, eyeY, eyeZ);
 }
 
 void Gz::multMatrix(GzMatrix mat) {
@@ -244,7 +246,7 @@ void Gz::end() {
 					GzColor c = colorQueue.front();
 					colorQueue.pop();
 
-					frameBuffer.drawPoint(v, n, c, status);
+					frameBuffer.drawPoint(v, n, eyePos, c, status);
 				}
 			} break;
 			case GZ_TRIANGLES: {
@@ -266,7 +268,7 @@ void Gz::end() {
 						colorQueue.pop();
 					}
 					
-					frameBuffer.drawTriangle(v, n, c, status);
+					frameBuffer.drawTriangle(v, n, eyePos, c, status);
 				}
 			} break;
 		}
