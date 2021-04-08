@@ -221,7 +221,61 @@ void GzFrameBuffer::drawTriangle(vector<GzVertex>& v, vector<GzVector>& n, const
 	}
 	else if (curShadeModel == GZ_PHONG)
 	{
+		GzInt yMin, yMax;
+		GzReal xMin, xMax, zMin, zMax;
+		GzColor cMin, cMax;
+		GzVector nMin, nMax;
 
+		v.push_back(v[0]);
+		c.push_back(c[0]);
+		n.push_back(n[0]);
+
+		yMin=INT_MAX;
+		yMax=-INT_MAX;
+
+		for (GzInt i=0; i<3; i++) {
+			yMin=min((GzInt)floor(v[i][Y]), yMin);
+			yMax=max((GzInt)floor(v[i][Y]-1e-3), yMax);
+		}
+
+		for (GzInt y=yMin; y<=yMax; y++) {
+			xMin=INT_MAX;
+			xMax=-INT_MAX;
+			for (GzInt i=0; i<3; i++) {
+				if ((GzInt)floor(v[i][Y])==y) {
+					if (v[i][X]<xMin) {
+						xMin=v[i][X];
+						zMin=v[i][Z];
+						cMin=c[i];
+						nMin=n[i];
+					}
+					if (v[i][X]>xMax) {
+						xMax=v[i][X];
+						zMax=v[i][Z];
+						cMax=c[i];
+						nMax=n[i];
+					}
+				}
+				if ((y-v[i][Y])*(y-v[i+1][Y])<0) {
+					GzReal x;
+					realInterpolate(v[i][Y], v[i][X], v[i+1][Y], v[i+1][X], y, x);
+					if (x<xMin) {
+						xMin=x;
+						realInterpolate(v[i][Y], v[i][Z], v[i+1][Y], v[i+1][Z], y, zMin);
+						colorInterpolate(v[i][Y], c[i], v[i+1][Y], c[i+1], y, cMin);
+						normalInterpolate(v[i][Y], n[i], v[i+1][Y], n[i+1], y, nMin);
+					}
+					if (x>xMax) {
+						xMax=x;
+						realInterpolate(v[i][Y], v[i][Z], v[i+1][Y], v[i+1][Z], y, zMax);
+						colorInterpolate(v[i][Y], c[i], v[i+1][Y], c[i+1], y, cMax);
+						normalInterpolate(v[i][Y], n[i], v[i+1][Y], n[i+1], y, nMax);
+					}
+				}
+			}
+
+			drawRasLine(y, xMin, zMin, cMin, nMin, xMax-1e-3, zMax, cMax, nMax, e, status);
+		}
 	}
 }
 
@@ -284,8 +338,8 @@ void GzFrameBuffer::drawRasLine(GzInt y, GzReal xMin, GzReal zMin, GzColor& cMin
 			else drawPoint(GzVertex(floor(xMin), y, zMax), nMax, e, cMax, status);
 	} else {
 		GzReal z;
-		GzColor c;
 		GzVector n;
+		GzColor c;
 		y=image.sizeH()-y-1;
 		int w=image.sizeW();
 		if (status&GZ_DEPTH_TEST) {
