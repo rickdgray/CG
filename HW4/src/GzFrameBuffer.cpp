@@ -197,14 +197,14 @@ void GzFrameBuffer::drawPoint(const GzVertex& v, const GzVector& n, const GzVect
 		GzReal z = v[Z];
 		if (z >= depthBuffer[x][y])
 		{
-			image.set(x, y, shade(n, c));
+			image.set(x, y, shade(n, e, c));
 			depthBuffer[x][y] = v[Z];
 		}
 
 		return;
 	}
 	
-	image.set(x, y, shade(n, c));
+	image.set(x, y, shade(n, e, c));
 }
 
 void GzFrameBuffer::drawTriangle(vector<GzVertex>& v, vector<GzVector>& n, const GzVector& e, vector<GzColor>& c, GzFunctional status)
@@ -214,7 +214,7 @@ void GzFrameBuffer::drawTriangle(vector<GzVertex>& v, vector<GzVector>& n, const
 		vector<GzColor> shadedColors(3);
         for (int i = 0; i < 3; i++)
         {
-            shadedColors[i] = shade(n[i], c[i]);
+            shadedColors[i] = shade(n[i], e, c[i]);
         }
 
         drawTriangle(v, shadedColors, status);
@@ -273,12 +273,12 @@ GzColor GzFrameBuffer::shade(const GzVector& n, const GzVector& e, const GzColor
 	return shadedColor;
 }
 
-void GzFrameBuffer::drawRasLine(GzInt y, GzReal xMin, GzReal zMin, GzColor& cMin, GzVector& nMin, GzReal xMax, GzReal zMax, GzColor& cMax, GzVector& nMax, GzFunctional status)
+void GzFrameBuffer::drawRasLine(GzInt y, GzReal xMin, GzReal zMin, GzColor& cMin, GzVector& nMin, GzReal xMax, GzReal zMax, GzColor& cMax, GzVector& nMax, const GzVector& e, GzFunctional status)
 {
 	if ((y<0)||(y>=image.sizeH())) return;
 	if ((GzInt)floor(xMin)==(GzInt)floor(xMax)) {
-		if (zMin>zMax) drawPoint(GzVertex(floor(xMin), y, zMin), nMin, cMin, status);
-			else drawPoint(GzVertex(floor(xMin), y, zMax), nMax, cMax, status);
+		if (zMin>zMax) drawPoint(GzVertex(floor(xMin), y, zMin), nMin, e, cMin, status);
+			else drawPoint(GzVertex(floor(xMin), y, zMax), nMax, e, cMax, status);
 	} else {
 		GzReal z;
 		GzColor c;
@@ -291,7 +291,7 @@ void GzFrameBuffer::drawRasLine(GzInt y, GzReal xMin, GzReal zMin, GzColor& cMin
 				if (z>=depthBuffer[x][y]) {
 					colorInterpolate(xMin, cMin, xMax, cMax, x, c);
 					normalInterpolate(xMin, nMin, xMax, nMax, x, n);
-					image.set(x, y, shade(n, c));
+					image.set(x, y, shade(n, e, c));
 					depthBuffer[x][y]=z;
 				}
 			}
@@ -300,7 +300,7 @@ void GzFrameBuffer::drawRasLine(GzInt y, GzReal xMin, GzReal zMin, GzColor& cMin
 				realInterpolate(xMin, zMin, xMax, zMax, x, z);
 				colorInterpolate(xMin, cMin, xMax, cMax, x, c);
 				normalInterpolate(xMin, nMin, xMax, nMax, x, n);
-				image.set(x, y, shade(n, c));
+				image.set(x, y, shade(n, e, c));
 				depthBuffer[x][y]=z;
 			}
 		}

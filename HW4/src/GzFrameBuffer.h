@@ -73,7 +73,7 @@ private:
 
 	GzColor shade(const GzVector& n, const GzVector& e, const GzColor& c);
 	void normalInterpolate(GzReal key1, GzVector& val1, GzReal key2, GzVector& val2, GzReal key, GzVector& val);
-	void drawRasLine(GzInt y, GzReal xMin, GzReal zMin, GzColor& cMin, GzVector& nMin, GzReal xMax, GzReal zMax, GzColor& cMax, GzVector& nMax, GzFunctional status);
+	void drawRasLine(GzInt y, GzReal xMin, GzReal zMin, GzColor& cMin, GzVector& nMin, GzReal xMax, GzReal zMax, GzColor& cMax, GzVector& nMax, const GzVector& e, GzFunctional status);
 //============================================================================
 //End of Declarations in Assignment #4
 //============================================================================
