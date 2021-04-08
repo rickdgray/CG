@@ -165,7 +165,7 @@ void GzFrameBuffer::loadLightTrans(GzMatrix transMatrix)
 	}
 }
 
-void drawPoint(const GzVertex& v, const GzVector& n, const GzColor& c, GzFunctional status)
+void GzFrameBuffer::drawPoint(const GzVertex& v, const GzVector& n, const GzColor& c, GzFunctional status)
 {
 	GzInt x = round(v[X]);
 	if (x < 0 || x >= image.sizeW())
@@ -190,22 +190,22 @@ void drawPoint(const GzVertex& v, const GzVector& n, const GzColor& c, GzFunctio
 	image.set(x, y, shade(n, c));
 }
 
-void drawTriangle(vector<GzVertex>& v, vector<GzVector>& n, vector<GzColor>& c, GzFunctional status)
+void GzFrameBuffer::drawTriangle(vector<GzVertex>& v, vector<GzVector>& n, vector<GzColor>& c, GzFunctional status)
 {
 	if (curShadeModel == GZ_GOURAUD)
 	{
 		vector<GzColor> Cs(3);
         for (int i = 0; i < 3; i++)
         {
-            Cs[i] = shaderFunction(n[i],c[i]);
+            Cs[i] = shade(n[i],c[i]);
         }
         drawTriangle(v,Cs,status);
 	}
 }
 
-GzColor shade(const GzVector& n, const GzColor& c)
+GzColor GzFrameBuffer::shade(const GzVector& n, const GzColor& c)
 {
-	GzColor shadedColor = new GzColor();
+	GzColor shadedColor;
 	for (int i = 0; i < 4; i++)
 	{
 		//apply ambient coefficeint on copy
@@ -226,7 +226,7 @@ GzColor shade(const GzVector& n, const GzColor& c)
 		{
 			if (lightColor[j] * dotProduct(n, L) * kD > 1 || lightColor[j] * dotProduct(n, L) * kD < 0)
 			{
-				cout << "lambertian out of bounds"
+				cout << "lambertian out of bounds";
 			}
 			shadedColor[j] += lightColor[j] * dotProduct(n, L) * kD;
 		}
