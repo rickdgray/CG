@@ -333,12 +333,12 @@ void GzFrameBuffer::drawTriangle(vector<GzVertex>& v, vector<GzTexCoord> t, GzFu
 				if (v[i][X]<xMin) {
 					xMin=v[i][X];
 					zMin=v[i][Z];
-					cMin=c[i];
+					tMin=t[i];
 				}
 				if (v[i][X]>xMax) {
 					xMax=v[i][X];
 					zMax=v[i][Z];
-					cMax=c[i];
+					tMax=t[i];
 				}
 			}
 			if ((y-v[i][Y])*(y-v[i+1][Y])<0) {
@@ -347,12 +347,12 @@ void GzFrameBuffer::drawTriangle(vector<GzVertex>& v, vector<GzTexCoord> t, GzFu
 				if (x<xMin) {
 					xMin=x;
 					realInterpolate(v[i][Y], v[i][Z], v[i+1][Y], v[i+1][Z], y, zMin);
-					textureInterpolate(v[i][Y], c[i], v[i+1][Y], c[i+1], y, cMin);
+					textureInterpolate(v[i][Y], t[i], v[i+1][Y], t[i+1], y, tMin);
 				}
 				if (x>xMax) {
 					xMax=x;
 					realInterpolate(v[i][Y], v[i][Z], v[i+1][Y], v[i+1][Z], y, zMax);
-					textureInterpolate(v[i][Y], c[i], v[i+1][Y], c[i+1], y, cMax);
+					textureInterpolate(v[i][Y], t[i], v[i+1][Y], t[i+1], y, tMax);
 				}
 			}
 		}
@@ -362,6 +362,65 @@ void GzFrameBuffer::drawTriangle(vector<GzVertex>& v, vector<GzTexCoord> t, GzFu
 
 void GzFrameBuffer::textureInterpolate(GzReal key1, GzTexCoord& val1, GzReal key2, GzTexCoord& val2, GzReal key, GzTexCoord& val)
 {
-	GzReal k=(key-key1)/(key2-key1);
-	for (GzInt i=0; i<2; i++) val[i]=val1[i]+(val2[i]-val1[i])*k;
+	GzReal k = (key - key1) / (key2 - key1);
+	for (GzInt i = 0; i < 2; i++)
+		val[i] = val1[i] + (val2[i] - val1[i]) * k;
+}
+
+void GzFrameBuffer::drawRasLine(GzInt y, GzReal xMin, GzReal zMin, GzTexCoord& tMin, GzReal xMax, GzReal zMax, GzTexCoord& tMax, GzFunctional status)
+{
+	if ((y < 0) || (y >= image.sizeH()))
+		return;
+	
+	if ((GzInt)floor(xMin) == (GzInt)floor(xMax))
+	{
+		if (zMin > zMax)
+		{
+			GzInt tMinX = tMin[U] * (curTexture.sizeW() - 1);
+			GzInt tMinY = tMin[V] * (curTexture.sizeH() - 1);
+			drawPoint(GzVertex(floor(xMin), y, zMin), curTexture.get(tMinX, tMinY), status);
+		}
+		else
+		{
+			GzInt tMaxX = tMax[U] * (curTexture.sizeW() - 1);
+			GzInt tMaxY = tMax[V] * (curTexture.sizeH() - 1);
+			drawPoint(GzVertex(floor(xMin), y, zMax), curTexture.get(tMaxX, tMaxY), status);
+		}
+	}
+	else
+	{
+		GzReal z;
+		GzTexCoord t;
+
+		y = image.sizeH() - y - 1;
+		int w = image.sizeW();
+
+		if (status & GZ_DEPTH_TEST)
+		{
+			for (int x = max(0, (GzInt)floor(xMin)); x <= min(w - 1, (GzInt)floor(xMax)); x++)
+			{
+				realInterpolate(xMin, zMin, xMax, zMax, x, z);
+				if (z >= depthBuffer[x][y])
+				{
+					textureInterpolate(xMin, tMin, xMax, tMax, x, t);
+					GzInt tX = t[U] * (curTexture.sizeW() - 1);
+					GzInt tY = t[V] * (curTexture.sizeH() - 1);
+					image.set(x, y, curTexture.get(tX, tY));
+					depthBuffer[x][y] = z;
+				}
+			}
+		}
+		else
+		{
+			for (int x = max(0, (GzInt)floor(xMin)); x <= min(w - 1, (GzInt)floor(xMax)); x++)
+			{
+				realInterpolate(xMin, zMin, xMax, zMax, x, z);
+				textureInterpolate(xMin, tMin, xMax, tMax, x, t);
+				GzInt tX = t[U] * (curTexture.sizeW() - 1);
+				GzInt tY = t[V] * (curTexture.sizeH() - 1);
+				image.set(x, y, curTexture.get(tX, tY));
+				depthBuffer[x][y] = z;
+			}
+		}
+	}
 }
