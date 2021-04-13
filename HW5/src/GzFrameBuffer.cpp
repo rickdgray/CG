@@ -303,3 +303,12 @@ GzColor GzFrameBuffer::colorWLight(GzColor c, GzVector n) {
 	return res;
 }
 
+void GzFrameBuffer::texture(const GzImage& t)
+{
+	curTexture = t;
+}
+
+void GzFrameBuffer::drawTriangle(vector<GzVertex>& v, vector<GzTexCoord> t, GzFunctional status)
+{
+
+}

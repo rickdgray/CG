@@ -37,8 +37,8 @@ public:
 	void drawTriangleWLight(vector<GzVertex>& v, vector<GzColor>& c, vector<GzVector>& n, GzFunctional status);
 
 	void texture(const GzImage& t);
-
-
+	void drawTriangle(vector<GzVertex>& v, vector<GzTexCoord> t, GzFunctional status);
+	
 private:
 	//Shading 
 	GzInt curShadeModel;
@@ -61,6 +61,7 @@ private:
 	void drawRasLineWLight(GzInt y, GzReal xMin, GzReal zMin, GzColor& cMin, GzVector& nMin, GzReal xMax, GzReal zMax, GzColor& cMax, GzVector& nMax, GzFunctional status);
 	GzColor colorWLight(GzColor c, GzVector n);
 
+	GzImage curTexture;
 };
 //----------------------------------------------------------------------------
 
