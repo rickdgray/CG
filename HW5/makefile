@@ -9,7 +9,7 @@ $(EXEC) : $(OBJECTS)
 	$(COMPILER) $(OBJECTS) -o $(EXEC)
 
 %.o : $(SRC_DIR)/%.cpp
-	$(COMPILER) -c $<
+	$(COMPILER) -c -g $<
 
 .PHONY : all
 all : $(EXEC)

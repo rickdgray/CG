@@ -235,11 +235,11 @@ void Gz::addLight(const GzVector& v, const GzColor& c) {
 //Implementations in Assignment #5
 //============================================================================
 void Gz::texture(const GzImage& t) {
-
+	frameBuffer.texture(t);
 }
 
 void Gz::addTexCoord(const GzTexCoord& tc) {
-
+	texCoordQueue.push(tc);
 }
 
 void Gz::end() {
@@ -249,7 +249,22 @@ void Gz::end() {
 	//Also we only need to implement the triangle rasterization.
 	
 	if (get(GZ_TEXTURE)) {
+		while (vertexQueue.size() >= 3 && texCoordQueue.size() >= 3)
+		{
+			vector<GzVertex> v(3);
+			vector<GzTexCoord> t(3);
 
+			for (int i = 0; i < 3; i++)
+			{
+				v[i] = transAll(vertexQueue.front());
+				vertexQueue.pop();
+
+				t[i] = texCoordQueue.front();
+				texCoordQueue.pop();
+			}
+
+			frameBuffer.drawTriangle(v, t, status);
+		}
 	}
 
 	if (get(GZ_LIGHTING)) {
