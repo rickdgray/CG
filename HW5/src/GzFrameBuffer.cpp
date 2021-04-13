@@ -310,5 +310,58 @@ void GzFrameBuffer::texture(const GzImage& t)
 
 void GzFrameBuffer::drawTriangle(vector<GzVertex>& v, vector<GzTexCoord> t, GzFunctional status)
 {
+	GzInt yMin, yMax;
+	GzReal xMin, xMax, zMin, zMax;
+	GzTexCoord tMin, tMax;
 
+	v.push_back(v[0]);
+	t.push_back(t[0]);
+
+	yMin=INT_MAX;
+	yMax=-INT_MAX;
+
+	for (GzInt i=0; i<3; i++) {
+		yMin=min((GzInt)floor(v[i][Y]), yMin);
+		yMax=max((GzInt)floor(v[i][Y]-1e-3), yMax);
+	}
+		
+	for (GzInt y=yMin; y<=yMax; y++) {
+		xMin=INT_MAX;
+		xMax=-INT_MAX;
+		for (GzInt i=0; i<3; i++) {
+			if ((GzInt)floor(v[i][Y])==y) {
+				if (v[i][X]<xMin) {
+					xMin=v[i][X];
+					zMin=v[i][Z];
+					cMin=c[i];
+				}
+				if (v[i][X]>xMax) {
+					xMax=v[i][X];
+					zMax=v[i][Z];
+					cMax=c[i];
+				}
+			}
+			if ((y-v[i][Y])*(y-v[i+1][Y])<0) {
+				GzReal x;
+				realInterpolate(v[i][Y], v[i][X], v[i+1][Y], v[i+1][X], y, x);
+				if (x<xMin) {
+					xMin=x;
+					realInterpolate(v[i][Y], v[i][Z], v[i+1][Y], v[i+1][Z], y, zMin);
+					textureInterpolate(v[i][Y], c[i], v[i+1][Y], c[i+1], y, cMin);
+				}
+				if (x>xMax) {
+					xMax=x;
+					realInterpolate(v[i][Y], v[i][Z], v[i+1][Y], v[i+1][Z], y, zMax);
+					textureInterpolate(v[i][Y], c[i], v[i+1][Y], c[i+1], y, cMax);
+				}
+			}
+		}
+		drawRasLine(y, xMin, zMin, tMin, xMax-1e-3, zMax, tMax, status);
+	}
+}
+
+void GzFrameBuffer::textureInterpolate(GzReal key1, GzTexCoord& val1, GzReal key2, GzTexCoord& val2, GzReal key, GzTexCoord& val)
+{
+	GzReal k=(key-key1)/(key2-key1);
+	for (GzInt i=0; i<2; i++) val[i]=val1[i]+(val2[i]-val1[i])*k;
 }
