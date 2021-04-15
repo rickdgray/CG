@@ -243,12 +243,8 @@ void Gz::addTexCoord(const GzTexCoord& tc) {
 }
 
 void Gz::end() {
-	//Again this function need to be updated if the GZ_TEXTURE is turned on.
-	//Remember to pop texture coordinates from texCoordQueue.
-	//Note that in this assignment, we only consider texture mapping without lighting.
-	//Also we only need to implement the triangle rasterization.
-	
-	if (get(GZ_TEXTURE)) {
+	if (get(GZ_TEXTURE))
+	{
 		while (vertexQueue.size() >= 3 && texCoordQueue.size() >= 3)
 		{
 			vector<GzVertex> v(3);
@@ -266,8 +262,8 @@ void Gz::end() {
 			frameBuffer.drawTriangle(v, t, status);
 		}
 	}
-
-	if (get(GZ_LIGHTING)) {
+	else if (get(GZ_LIGHTING))
+	{
 		frameBuffer.loadLightTrans(transMatrix);
 		switch (currentPrimitive) {
 			case GZ_POINTS: {
@@ -292,7 +288,9 @@ void Gz::end() {
 				}
 			} break;
 		}
-	} else {
+	}
+	else
+	{
 		switch (currentPrimitive) {
 			case GZ_POINTS: {
 				while ( (vertexQueue.size()>=1) && (colorQueue.size()>=1) ) {

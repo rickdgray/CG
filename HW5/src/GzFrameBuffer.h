@@ -49,14 +49,14 @@ private:
 
 	//Put any variables and private functions for your implementation here
 	GzImage image;
-	vector<vector<GzReal> > depthBuffer;
+	vector<vector<GzReal>> depthBuffer;
 	GzColor clearColor;
 	GzReal clearDepth;
 
 	void realInterpolate(GzReal key1, GzReal val1, GzReal key2, GzReal val2, GzReal key, GzReal& val);
 	void colorInterpolate(GzReal key1, GzColor& val1, GzReal key2, GzColor& val2, GzReal key, GzColor& val);
 	void normalInterpolate(GzReal key1, GzVector& val1, GzReal key2, GzVector& val2, GzReal key, GzVector& val);
-	void textureInterpolate(GzReal key1, GzTexCoord& val1, GzReal key2, GzTexCoord& val2, GzReal key, GzTexCoord& val);
+	void textureInterpolate(GzReal z, GzReal key1, GzTexCoord& val1, GzReal key2, GzTexCoord& val2, GzReal key, GzTexCoord& val);
 
 	void drawRasLine(GzInt y, GzReal xMin, GzReal zMin, GzColor& cMin, GzReal xMax, GzReal zMax, GzColor& cMax, GzFunctional status);
 	void drawRasLineWLight(GzInt y, GzReal xMin, GzReal zMin, GzColor& cMin, GzVector& nMin, GzReal xMax, GzReal zMax, GzColor& cMax, GzVector& nMax, GzFunctional status);

@@ -347,24 +347,54 @@ void GzFrameBuffer::drawTriangle(vector<GzVertex>& v, vector<GzTexCoord> t, GzFu
 				if (x<xMin) {
 					xMin=x;
 					realInterpolate(v[i][Y], v[i][Z], v[i+1][Y], v[i+1][Z], y, zMin);
-					textureInterpolate(v[i][Y], t[i], v[i+1][Y], t[i+1], y, tMin);
+					textureInterpolate(zMin, v[i][Y], t[i], v[i+1][Y], t[i+1], y, tMin);
 				}
 				if (x>xMax) {
 					xMax=x;
 					realInterpolate(v[i][Y], v[i][Z], v[i+1][Y], v[i+1][Z], y, zMax);
-					textureInterpolate(v[i][Y], t[i], v[i+1][Y], t[i+1], y, tMax);
+					textureInterpolate(zMax, v[i][Y], t[i], v[i+1][Y], t[i+1], y, tMax);
 				}
 			}
 		}
+
+		// //calc z buffer for perspective correction
+		// for (int x = max(0, (GzInt)floor(xMin)); x <= min(image.sizeW() - 1, (GzInt)floor(xMax)); x++)
+		// {
+		// 	GzReal z;
+		// 	realInterpolate(xMin, zMin, xMax, zMax, x, z);
+		// 	zLookup[x][image.sizeH() - y - 1];
+		// }
+
+		// for (int x = max(0, (GzInt)floor(xMin)); x <= min(image.sizeW() - 1, (GzInt)floor(xMax)); x++)
+		// {
+		// 	GzReal zReciprocal = 1 / zLookup[x][image.sizeH() - y - 1];
+		// 	GzReal
+		// }
+		
 		drawRasLine(y, xMin, zMin, tMin, xMax-1e-3, zMax, tMax, status);
 	}
 }
 
-void GzFrameBuffer::textureInterpolate(GzReal key1, GzTexCoord& val1, GzReal key2, GzTexCoord& val2, GzReal key, GzTexCoord& val)
+void GzFrameBuffer::textureInterpolate(GzReal z, GzReal key1, GzTexCoord& val1, GzReal key2, GzTexCoord& val2, GzReal key, GzTexCoord& val)
 {
+	GzReal zReciprocal = 1 / z;
+	GzReal uScaled = val[U] * zReciprocal;
+	GzReal uScaled1 = val1[U] * zReciprocal;
+	GzReal uScaled2 = val2[U] * zReciprocal;
+	GzReal vScaled = val[V] * zReciprocal;
+	GzReal vScaled1 = val1[V] * zReciprocal;
+	GzReal vScaled2 = val2[V] * zReciprocal;
+
 	GzReal k = (key - key1) / (key2 - key1);
-	for (GzInt i = 0; i < 2; i++)
-		val[i] = val1[i] + (val2[i] - val1[i]) * k;
+
+	uScaled = uScaled1 + (uScaled2 - uScaled1) * k;
+	vScaled = vScaled1 + (vScaled2 - vScaled1) * k;
+
+	GzReal uCorrected = uScaled * z;
+	GzReal vCorrected = vScaled * z;
+
+	val[U] = uCorrected;
+	val[V] = vCorrected;
 }
 
 void GzFrameBuffer::drawRasLine(GzInt y, GzReal xMin, GzReal zMin, GzTexCoord& tMin, GzReal xMax, GzReal zMax, GzTexCoord& tMax, GzFunctional status)
@@ -395,27 +425,12 @@ void GzFrameBuffer::drawRasLine(GzInt y, GzReal xMin, GzReal zMin, GzTexCoord& t
 		y = image.sizeH() - y - 1;
 		int w = image.sizeW();
 
-		if (status & GZ_DEPTH_TEST)
+		for (int x = max(0, (GzInt)floor(xMin)); x <= min(w - 1, (GzInt)floor(xMax)); x++)
 		{
-			for (int x = max(0, (GzInt)floor(xMin)); x <= min(w - 1, (GzInt)floor(xMax)); x++)
+			realInterpolate(xMin, zMin, xMax, zMax, x, z);
+			if (z >= depthBuffer[x][y])
 			{
-				realInterpolate(xMin, zMin, xMax, zMax, x, z);
-				if (z >= depthBuffer[x][y])
-				{
-					textureInterpolate(xMin, tMin, xMax, tMax, x, t);
-					GzInt tX = t[U] * (curTexture.sizeW() - 1);
-					GzInt tY = t[V] * (curTexture.sizeH() - 1);
-					image.set(x, y, curTexture.get(tX, tY));
-					depthBuffer[x][y] = z;
-				}
-			}
-		}
-		else
-		{
-			for (int x = max(0, (GzInt)floor(xMin)); x <= min(w - 1, (GzInt)floor(xMax)); x++)
-			{
-				realInterpolate(xMin, zMin, xMax, zMax, x, z);
-				textureInterpolate(xMin, tMin, xMax, tMax, x, t);
+				textureInterpolate(z, xMin, tMin, xMax, tMax, x, t);
 				GzInt tX = t[U] * (curTexture.sizeW() - 1);
 				GzInt tY = t[V] * (curTexture.sizeH() - 1);
 				image.set(x, y, curTexture.get(tX, tY));
