@@ -347,12 +347,12 @@ void GzFrameBuffer::drawTriangle(vector<GzVertex>& v, vector<GzTexCoord> t, GzFu
 				if (x<xMin) {
 					xMin=x;
 					realInterpolate(v[i][Y], v[i][Z], v[i+1][Y], v[i+1][Z], y, zMin);
-					textureInterpolate(zMin, v[i][Y], t[i], v[i+1][Y], t[i+1], y, tMin);
+					textureInterpolate(v[i][Y], t[i], v[i+1][Y], t[i+1], y, tMin);
 				}
 				if (x>xMax) {
 					xMax=x;
 					realInterpolate(v[i][Y], v[i][Z], v[i+1][Y], v[i+1][Z], y, zMax);
-					textureInterpolate(zMax, v[i][Y], t[i], v[i+1][Y], t[i+1], y, tMax);
+					textureInterpolate(v[i][Y], t[i], v[i+1][Y], t[i+1], y, tMax);
 				}
 			}
 		}
@@ -375,26 +375,11 @@ void GzFrameBuffer::drawTriangle(vector<GzVertex>& v, vector<GzTexCoord> t, GzFu
 	}
 }
 
-void GzFrameBuffer::textureInterpolate(GzReal z, GzReal key1, GzTexCoord& val1, GzReal key2, GzTexCoord& val2, GzReal key, GzTexCoord& val)
+void GzFrameBuffer::textureInterpolate(GzReal key1, GzTexCoord& val1, GzReal key2, GzTexCoord& val2, GzReal key, GzTexCoord& val)
 {
-	GzReal zReciprocal = 1 / z;
-	GzReal uScaled = val[U] * zReciprocal;
-	GzReal uScaled1 = val1[U] * zReciprocal;
-	GzReal uScaled2 = val2[U] * zReciprocal;
-	GzReal vScaled = val[V] * zReciprocal;
-	GzReal vScaled1 = val1[V] * zReciprocal;
-	GzReal vScaled2 = val2[V] * zReciprocal;
-
 	GzReal k = (key - key1) / (key2 - key1);
-
-	uScaled = uScaled1 + (uScaled2 - uScaled1) * k;
-	vScaled = vScaled1 + (vScaled2 - vScaled1) * k;
-
-	GzReal uCorrected = uScaled * z;
-	GzReal vCorrected = vScaled * z;
-
-	val[U] = uCorrected;
-	val[V] = vCorrected;
+	for (GzInt i = 0; i < 2; i++)
+		val[i] = val1[i] + (val2[i] - val1[i]) * k;
 }
 
 void GzFrameBuffer::drawRasLine(GzInt y, GzReal xMin, GzReal zMin, GzTexCoord& tMin, GzReal xMax, GzReal zMax, GzTexCoord& tMax, GzFunctional status)
@@ -430,7 +415,7 @@ void GzFrameBuffer::drawRasLine(GzInt y, GzReal xMin, GzReal zMin, GzTexCoord& t
 			realInterpolate(xMin, zMin, xMax, zMax, x, z);
 			if (z >= depthBuffer[x][y])
 			{
-				textureInterpolate(z, xMin, tMin, xMax, tMax, x, t);
+				textureInterpolate(xMin, tMin, xMax, tMax, x, t);
 				GzInt tX = t[U] * (curTexture.sizeW() - 1);
 				GzInt tY = t[V] * (curTexture.sizeH() - 1);
 				image.set(x, y, curTexture.get(tX, tY));
