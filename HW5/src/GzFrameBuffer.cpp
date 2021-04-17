@@ -356,20 +356,6 @@ void GzFrameBuffer::drawTriangle(vector<GzVertex>& v, vector<GzTexCoord> t, GzFu
 				}
 			}
 		}
-
-		// //calc z buffer for perspective correction
-		// for (int x = max(0, (GzInt)floor(xMin)); x <= min(image.sizeW() - 1, (GzInt)floor(xMax)); x++)
-		// {
-		// 	GzReal z;
-		// 	realInterpolate(xMin, zMin, xMax, zMax, x, z);
-		// 	zLookup[x][image.sizeH() - y - 1];
-		// }
-
-		// for (int x = max(0, (GzInt)floor(xMin)); x <= min(image.sizeW() - 1, (GzInt)floor(xMax)); x++)
-		// {
-		// 	GzReal zReciprocal = 1 / zLookup[x][image.sizeH() - y - 1];
-		// 	GzReal
-		// }
 		
 		drawRasLine(y, xMin, zMin, tMin, xMax-1e-3, zMax, tMax, status);
 	}
