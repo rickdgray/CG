@@ -15,5 +15,8 @@ https://github.com/rickdgray/CG/blob/main/HW3/HW3.zip
 HW4:
 https://github.com/rickdgray/CG/blob/main/HW4/HW4.zip
 
+HW5:
+https://github.com/rickdgray/CG/blob/main/HW5/HW5.zip
+
 
 Can be run just by using makefile. Uses round, max, min, pow in math.h and utilities so requires c++ 99 or later. Tested on ubuntu.
