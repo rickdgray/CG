@@ -1,103 +1,120 @@
-# -*- coding: utf-8 -*-
-#
-# Max-Planck-Gesellschaft zur Förderung der Wissenschaften e.V. (MPG) is
-# holder of all proprietary rights on this computer program.
-# Using this computer program means that you agree to the terms 
-# in the LICENSE file included with this software distribution. 
-# Any use not explicitly granted by the LICENSE is prohibited.
-#
-# Copyright©2019 Max-Planck-Gesellschaft zur Förderung
-# der Wissenschaften e.V. (MPG). acting on behalf of its Max Planck Institute
-# for Intelligent Systems. All rights reserved.
-#
-# For comments or questions, please email us at deca@tue.mpg.de
-# For commercial licensing contact, please contact ps-license@tuebingen.mpg.de
-
 import os, sys
 import cv2
 import numpy as np
-from time import time
-from scipy.io import savemat
-import argparse
+import torch
 from tqdm import tqdm
+from yacs.config import CfgNode as CN
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from decalib.deca import DECA
 from decalib.datasets import datasets 
 from decalib.utils import util
-from decalib.utils.config import cfg as deca_cfg
+from decalib.utils.renderer import SRenderY
+from decalib.models.encoders import ResnetEncoder
+from decalib.models.FLAME import FLAME
+from decalib.models.decoders import Generator
 
-def main(args):
-    savefolder = args.savefolder
-    device = args.device
-    os.makedirs(savefolder, exist_ok=True)
+@torch.no_grad()
+def encode(flame_encoder, images):
+    parameters = flame_encoder(images)
+    codedict = decompose_code(parameters, {'shape': 100, 'tex': 50, 'exp': 50, 'pose': 6, 'cam': 3, 'light': 27})
+    codedict['images'] = images
+    return codedict
 
-    # load test images 
-    testdata = datasets.TestData(args.inputpath, iscrop=args.iscrop, face_detector=args.detector)
+def decompose_code(code, num_dict):
+    code_dict = {}
+    start = 0
+    for key in num_dict:
+        end = start+int(num_dict[key])
+        code_dict[key] = code[:, start:end]
+        start = end
+    return code_dict
 
-    # run DECA
-    deca_cfg.model.use_tex = args.useTex
-    deca = DECA(config = deca_cfg, device=device)
-    # for i in range(len(testdata)):
-    for i in tqdm(range(len(testdata))):
-        name = testdata[i]['imagename']
-        images = testdata[i]['image'].to(device)[None,...]
-        codedict = deca.encode(images)
-        opdict, visdict = deca.decode(codedict) #tensor
-        if args.saveDepth or args.saveKpt or args.saveObj or args.saveMat or args.saveImages:
-            os.makedirs(os.path.join(savefolder, name), exist_ok=True)
-        # -- save results
-        if args.saveDepth:
-            depth_image = deca.render.render_depth(opdict['transformed_vertices']).repeat(1,3,1,1)
-            visdict['depth_images'] = depth_image
-            cv2.imwrite(os.path.join(savefolder, name, name + '_depth.jpg'), util.tensor2image(depth_image[0]))
-        if args.saveKpt:
-            np.savetxt(os.path.join(savefolder, name, name + '_kpt2d.txt'), opdict['landmarks2d'][0].cpu().numpy())
-            np.savetxt(os.path.join(savefolder, name, name + '_kpt3d.txt'), opdict['landmarks3d'][0].cpu().numpy())
-        if args.saveObj:
-            deca.save_obj(os.path.join(savefolder, name, name + '.obj'), opdict)
-        if args.saveMat:
-            opdict = util.dict_tensor2npy(opdict)
-            savemat(os.path.join(savefolder, name, name + '.mat'), opdict)
-        if args.saveVis:
-            cv2.imwrite(os.path.join(savefolder, name + '_vis.jpg'), deca.visualize(visdict))
-        if args.saveImages:
-            for vis_name in ['inputs', 'rendered_images', 'albedo_images', 'shape_images', 'shape_detail_images']:
-                if vis_name not in visdict.keys():
-                    continue
-                image  =util.tensor2image(visdict[vis_name][0])
-                cv2.imwrite(os.path.join(savefolder, name, name + '_' + vis_name +'.jpg'), util.tensor2image(visdict[vis_name][0]))
-    print(f'-- please check the results in {savefolder}')
-        
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='DECA: Detailed Expression Capture and Animation')
+@torch.no_grad()
+def decode(flame_decoder, codedict, renderer):
+    images = codedict['images']
+    verts, landmarks2d, landmarks3d = flame_decoder(shape_params=codedict['shape'])
+    landmarks2d = util.batch_orth_proj(landmarks2d, codedict['cam'])[:,:,:2]
+    landmarks2d[:,:,1:] = -landmarks2d[:,:,1:]
+    landmarks2d = landmarks2d * 112 + 112
+    landmarks3d = util.batch_orth_proj(landmarks3d, codedict['cam'])
+    landmarks3d[:,:,1:] = -landmarks3d[:,:,1:]
+    landmarks3d = landmarks3d * 112 + 112
+    trans_verts = util.batch_orth_proj(verts, codedict['cam'])
+    trans_verts[:,:,1:] = -trans_verts[:,:,1:]
+    shape_images = renderer.render_shape(verts, trans_verts)
+    opdict = {
+        'vertices': verts,
+        'transformed_vertices': trans_verts,
+        'landmarks2d': landmarks2d,
+        'landmarks3d': landmarks3d
+    }
+    visdict = {
+        'inputs': images, 
+        'landmarks2d': util.tensor_vis_landmarks(images, landmarks2d, isScale=False),
+        'landmarks3d': util.tensor_vis_landmarks(images, landmarks3d, isScale=False),
+        'shape_images': shape_images
+    }
+    return opdict, visdict
 
-    parser.add_argument('-i', '--inputpath', default='input', type=str,
-                        help='path to the test data, can be image folder, image path, image list, video')
-    parser.add_argument('-s', '--savefolder', default='results', type=str,
-                        help='path to the output directory, where results(obj, txt files) will be stored.')
-    parser.add_argument('--device', default='cuda', type=str,
-                        help='set device, cpu for using cpu' )
-    # process test images
-    parser.add_argument('--iscrop', default=True, type=lambda x: x.lower() in ['true', '1'],
-                        help='whether to crop input image, set false only when the test image are well cropped' )
-    parser.add_argument('--detector', default='fan', type=str,
-                        help='detector for cropping face, check decalib/datasets/detectors.py for details' )
-    # save
-    parser.add_argument('--useTex', default=False, type=lambda x: x.lower() in ['true', '1'],
-                        help='whether to use FLAME texture model to generate uv texture map, \
-                            set it to True only if you downloaded texture model' )
-    parser.add_argument('--saveVis', default=True, type=lambda x: x.lower() in ['true', '1'],
-                        help='whether to save visualization of output' )
-    parser.add_argument('--saveKpt', default=False, type=lambda x: x.lower() in ['true', '1'],
-                        help='whether to save 2D and 3D keypoints' )
-    parser.add_argument('--saveDepth', default=False, type=lambda x: x.lower() in ['true', '1'],
-                        help='whether to save depth image' )
-    parser.add_argument('--saveObj', default=False, type=lambda x: x.lower() in ['true', '1'],
-                        help='whether to save outputs as .obj, detail mesh will end with _detail.obj. \
-                            Note that saving objs could be slow' )
-    parser.add_argument('--saveMat', default=False, type=lambda x: x.lower() in ['true', '1'],
-                        help='whether to save outputs as .mat' )
-    parser.add_argument('--saveImages', default=False, type=lambda x: x.lower() in ['true', '1'],
-                        help='whether to save visualization output as seperate images' )
-    main(parser.parse_args())
+savefolder = 'results'
+os.makedirs(savefolder, exist_ok=True)
+
+flame_config = CN()
+flame_config.flame_model_path = 'data/generic_model.pkl'
+flame_config.flame_lmk_embedding_path = 'data/landmark_embedding.npy'
+flame_config.n_shape = 100
+flame_config.n_exp = 50
+
+#load flat images
+testdata = datasets.TestData('input', face_detector='fan')
+
+#instantiate objects
+flame_encoder = ResnetEncoder(outsize=1).to('cuda') #TODO: check outsize number
+flame_decoder = FLAME(flame_config).to('cuda')
+renderer = SRenderY(224, obj_filename='data/head_template.obj').to('cuda')
+
+#load model
+checkpoint = torch.load('data/deca_model.tar')
+util.copy_state_dict(flame_encoder.state_dict(), checkpoint['E_flame'])
+flame_encoder.eval()
+
+name = testdata[0]['imagename']
+images = testdata[0]['image'].to('cuda')[None,...]
+
+codedict = encode(flame_encoder, images)
+opdict, visdict = decode(flame_decoder, codedict, renderer)
+
+os.makedirs(os.path.join(savefolder, name), exist_ok=True)
+np.savetxt(os.path.join(savefolder, name, name + '_kpt2d.txt'), opdict['landmarks2d'].cpu().numpy())
+np.savetxt(os.path.join(savefolder, name, name + '_kpt3d.txt'), opdict['landmarks3d'].cpu().numpy())
+
+vertices = opdict['vertices'][0].cpu().numpy()
+faces = renderer.faces[0].cpu().numpy()
+util.write_obj(os.path.join(savefolder, name, name + '.obj'), vertices, faces)
+
+for vis_name in ['inputs', 'rendered_images', 'shape_images']:
+    if vis_name not in visdict.keys():
+        continue
+    image = util.tensor2image(visdict[vis_name][0])
+    cv2.imwrite(os.path.join(savefolder, name, name + '_' + vis_name +'.jpg'), util.tensor2image(visdict[vis_name][0]))
+'''
+for i in tqdm(range(len(testdata))):
+    name = testdata[i]['imagename']
+    images = testdata[i]['image'].to('cuda')[None,...]
+
+    codedict = encode(flame_encoder, images)
+    opdict, visdict = decode(flame_decoder, codedict, renderer)
+    
+    os.makedirs(os.path.join(savefolder, name), exist_ok=True)
+    np.savetxt(os.path.join(savefolder, name, name + '_kpt2d.txt'), opdict['landmarks2d'].cpu().numpy())
+    np.savetxt(os.path.join(savefolder, name, name + '_kpt3d.txt'), opdict['landmarks3d'].cpu().numpy())
+
+    vertices = opdict['vertices'][i].cpu().numpy()
+    faces = renderer.faces[0].cpu().numpy()
+    util.write_obj(os.path.join(savefolder, name, name + '.obj'), vertices, faces)
+
+    for vis_name in ['inputs', 'rendered_images', 'shape_images']:
+        if vis_name not in visdict.keys():
+            continue
+        image = util.tensor2image(visdict[vis_name][0])
+        cv2.imwrite(os.path.join(savefolder, name, name + '_' + vis_name +'.jpg'), util.tensor2image(visdict[vis_name][0]))
+'''
