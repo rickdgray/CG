@@ -72,3 +72,5 @@ ipch/
 *.tar
 *.pkl
 Project/results
+
+.vscode

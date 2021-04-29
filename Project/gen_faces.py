@@ -42,14 +42,11 @@ def decode(flame_decoder, codedict, renderer):
     shape_images = renderer.render_shape(verts, trans_verts)
     opdict = {
         'vertices': verts,
-        'transformed_vertices': trans_verts,
         'landmarks2d': landmarks2d,
         'landmarks3d': landmarks3d
     }
     visdict = {
-        'inputs': images, 
-        'landmarks2d': util.tensor_vis_landmarks(images, landmarks2d, isScale=False),
-        'landmarks3d': util.tensor_vis_landmarks(images, landmarks3d, isScale=False),
+        'inputs': images,
         'shape_images': shape_images
     }
     return opdict, visdict
@@ -71,35 +68,47 @@ flame_config.n_light = 27
 param_dict = {i:flame_config.get('n_' + i) for i in flame_config.param_list}
 
 #load flat images
-testdata = datasets.TestData('input', face_detector='fan')
+faceData = datasets.TestData('input/faces', face_detector='fan')
+caricatureData = datasets.TestData('input/caricatures', face_detector='fan')
 
 #instantiate objects
 flame_encoder = ResnetEncoder(outsize=236).to('cuda')
 flame_decoder = FLAME(flame_config).to('cuda')
 renderer = SRenderY(224, obj_filename='data/head_template.obj').to('cuda')
 
-#load model
+#load neural network model
 checkpoint = torch.load('data/deca_model.tar')
 util.copy_state_dict(flame_encoder.state_dict(), checkpoint['E_flame'])
 flame_encoder.eval()
 
-for i in tqdm(range(len(testdata))):
-    name = testdata[i]['imagename']
-    images = testdata[i]['image'].to('cuda')[None,...]
+for i in tqdm(range(len(faceData))):
+    faceName = faceData[i]['imagename']
+    faceImages = faceData[i]['image'].to('cuda')[None,...]
 
-    codedict = encode(flame_encoder, images, param_dict)
-    opdict, visdict = decode(flame_decoder, codedict, renderer)
+    caricatureImages = caricatureData[0]['image'].to('cuda')[None,...]
+
+    faceCodedict = encode(flame_encoder, faceImages, param_dict)
+    faceOpdict, faceVisdict = decode(flame_decoder, faceCodedict, renderer)
+
+    caricatureCodedict = encode(flame_encoder, caricatureImages, param_dict)
+
+    #transfer style
+    faceCodedict['pose'][:,3:] = caricatureCodedict['pose'][:,3:]
+    faceCodedict['exp'] = caricatureCodedict['exp']
+
+    resultOpdict, resultVisdict = decode(flame_decoder, faceCodedict, renderer)
     
-    os.makedirs(os.path.join(savefolder, name), exist_ok=True)
-    np.savetxt(os.path.join(savefolder, name, name + '_kpt2d.txt'), opdict['landmarks2d'][0].cpu().numpy())
-    np.savetxt(os.path.join(savefolder, name, name + '_kpt3d.txt'), opdict['landmarks3d'][0].cpu().numpy())
+    os.makedirs(os.path.join(savefolder, faceName), exist_ok=True)
+    np.savetxt(os.path.join(savefolder, faceName, faceName + '_kpt2d.txt'), faceOpdict['landmarks2d'][0].cpu().numpy())
+    np.savetxt(os.path.join(savefolder, faceName, faceName + '_kpt3d.txt'), faceOpdict['landmarks3d'][0].cpu().numpy())
 
-    vertices = opdict['vertices'][i].cpu().numpy()
+    vertices = faceOpdict['vertices'][0].cpu().numpy()
     faces = renderer.faces[0].cpu().numpy()
-    util.write_obj(os.path.join(savefolder, name, name + '.obj'), vertices, faces)
+    util.write_obj(os.path.join(savefolder, faceName, faceName + '.obj'), vertices, faces)
 
-    for vis_name in ['inputs', 'rendered_images', 'shape_images']:
-        if vis_name not in visdict.keys():
-            continue
-        image = util.tensor2image(visdict[vis_name][0])
-        cv2.imwrite(os.path.join(savefolder, name, name + '_' + vis_name +'.jpg'), util.tensor2image(visdict[vis_name][0]))
+    image = util.tensor2image(faceVisdict['inputs'][0])
+    image = util.tensor2image(faceVisdict['shape_images'][0])
+    image = util.tensor2image(resultVisdict['shape_images'][0])
+    cv2.imwrite(os.path.join(savefolder, faceName, faceName + '_' + 'inputs' +'.jpg'), util.tensor2image(faceVisdict['inputs'][0]))
+    cv2.imwrite(os.path.join(savefolder, faceName, faceName + '_' + 'shape_images' +'.jpg'), util.tensor2image(faceVisdict['shape_images'][0]))
+    cv2.imwrite(os.path.join(savefolder, faceName, faceName + '_' + 'transferred_images' +'.jpg'), util.tensor2image(resultVisdict['shape_images'][0]))
