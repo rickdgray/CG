@@ -1,16 +1,15 @@
-import os, sys
+import os
 import cv2
 import numpy as np
 import torch
 from tqdm import tqdm
 from yacs.config import CfgNode as CN
 
-from decalib.datasets import datasets 
-from decalib.utils import util
-from decalib.utils.renderer import SRenderY
+from decalib.datasets import datasets
 from decalib.models.encoders import ResnetEncoder
 from decalib.models.FLAME import FLAME
-from decalib.models.decoders import Generator
+from decalib.utils import util
+from decalib.utils.renderer import SRenderY
 
 @torch.no_grad()
 def encode(flame_encoder, images, param_dict):
