@@ -70,7 +70,7 @@ To do so, these two files must be prepared:
   1. The 'generic_model.pkl' file unzipped into the data folder from the [FLAME 2020](https://flame.is.tue.mpg.de/downloads) model pack
   2. The [DECA trained model](https://drive.google.com/file/d/1rp8kdyLPvErw2dTmqtjISRVvQLj6Yzje/view?usp=sharing) copied directly into the data folder as a .tar. It is not a standard tarball and tar will not decompress it.
 
-Once the files are in place, a simple photo of a source face may be placed into the input/faces folder and a source face for landmark transfer may be placed in the input/transfer folder for processing. Photos cropped to around the face with a straight on view produce the best results.
+Once the files are in place, a simple photo of a source face may be placed into the 'input/faces' folder and a source face for landmark transfer may be placed in the 'input/transfer' folder for processing. Photos cropped to around the face with a straight on view produce the best results.
 
 Finally, to generate a mesh and renders, you can simply run
 ```bash
