@@ -21,8 +21,8 @@ https://github.com/rickdgray/CG/blob/main/HW5/HW5.zip
 
 Can be run just by using makefile. Uses round, max, min, pow in math.h and utilities so requires c++ 99 or later. Tested on ubuntu.
 
-# 3D Caricature Generation
-This project will take flat images of human faces and generate 3D meshes of caricatures.
+# 3D Mesh Generation and Landmark Transfer
+This project will take flat images of human faces and generate 3D meshes, then transfer landmarks from other faces to distort the mesh.
 
 ### Setting up the environment
 There's a lot. You _must_ have an NVIDIA GPU; it will not run without one. I also strongly recommend running on a modern linux distribution, though hypothetically it will run on other operating systems.
@@ -70,9 +70,9 @@ To do so, these two files must be prepared:
   1. The 'generic_model.pkl' file unzipped into the data folder from the [FLAME 2020](https://flame.is.tue.mpg.de/downloads) model pack
   2. The [DECA trained model](https://drive.google.com/file/d/1rp8kdyLPvErw2dTmqtjISRVvQLj6Yzje/view?usp=sharing) copied directly into the data folder as a .tar. It is not a standard tarball and tar will not decompress it.
 
-Once the files are in place, a simple photo of a face may be placed into the input folder for processing. Photos cropped to around the face with a straight on view produce the best results.
+Once the files are in place, a simple photo of a source face may be placed into the 'input/faces' folder and a source face for landmark transfer may be placed in the 'input/transfer' folder for processing. Photos cropped to around the face with a straight on view produce the best results.
 
-Finally, to generate a mesh, you can simply run
+Finally, to generate a mesh and renders, you can simply run
 ```bash
 python3 gen_faces.py
 ```
