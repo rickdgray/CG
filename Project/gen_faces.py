@@ -69,7 +69,7 @@ param_dict = {i:flame_config.get('n_' + i) for i in flame_config.param_list}
 
 #load flat images
 faceData = datasets.TestData('input/faces', face_detector='fan')
-caricatureData = datasets.TestData('input/caricatures', face_detector='fan')
+caricatureData = datasets.TestData('input/transfer', face_detector='fan')
 
 #instantiate objects
 flame_encoder = ResnetEncoder(outsize=236).to('cuda')
@@ -99,16 +99,12 @@ for i in tqdm(range(len(faceData))):
     resultOpdict, resultVisdict = decode(flame_decoder, faceCodedict, renderer)
     
     os.makedirs(os.path.join(savefolder, faceName), exist_ok=True)
-    np.savetxt(os.path.join(savefolder, faceName, faceName + '_kpt2d.txt'), faceOpdict['landmarks2d'][0].cpu().numpy())
-    np.savetxt(os.path.join(savefolder, faceName, faceName + '_kpt3d.txt'), faceOpdict['landmarks3d'][0].cpu().numpy())
 
     vertices = faceOpdict['vertices'][0].cpu().numpy()
     faces = renderer.faces[0].cpu().numpy()
     util.write_obj(os.path.join(savefolder, faceName, faceName + '.obj'), vertices, faces)
 
-    image = util.tensor2image(faceVisdict['inputs'][0])
     image = util.tensor2image(faceVisdict['shape_images'][0])
     image = util.tensor2image(resultVisdict['shape_images'][0])
-    cv2.imwrite(os.path.join(savefolder, faceName, faceName + '_' + 'inputs' +'.jpg'), util.tensor2image(faceVisdict['inputs'][0]))
     cv2.imwrite(os.path.join(savefolder, faceName, faceName + '_' + 'shape_images' +'.jpg'), util.tensor2image(faceVisdict['shape_images'][0]))
     cv2.imwrite(os.path.join(savefolder, faceName, faceName + '_' + 'transferred_images' +'.jpg'), util.tensor2image(resultVisdict['shape_images'][0]))
