@@ -1,6 +1,4 @@
 # COSC 6372 Computer Graphics
-Can be run just by using makefile. Uses round, max, min, pow in math.h and utilities so requires c++ 99 or later. Tested on ubuntu.
-
 # 3D Mesh Generation and Landmark Transfer
 This project will take flat images of human faces and generate 3D meshes, then transfer landmarks from other faces to distort the mesh.
 
